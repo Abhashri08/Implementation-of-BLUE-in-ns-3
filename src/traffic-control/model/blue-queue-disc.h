@@ -77,22 +77,28 @@ private:
 protected:
 	int command(int argc, const char*const* argv);
         
-        PacketQueue *q_;	/* underlying FIFO queue */ 
-	void enque(Packet*);
-	Packet* deque();
+	bool DoEnqueue(Ptr<QueueDiscItem> item);
+	Ptr<QueueDiscItem DoDequeue(void);
 	
 
 	
-	void reset();
+	void DoReset();
 	void plot();
 	void plot1(int qlen);
 	void pmark_plot(int method);
-	int drop_early(Packet*);                
+
+        /**
+          * \brief Check if a packet needs to be dropped due to probability drop
+          * \param item queue item
+          * \param qSize queue size
+          * \returns 0 for no drop, 1 for drop
+          */
+        bool DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize);                
 	
 
 
-	void increment_pmark(int how);
-	void decrement_pmark(int how);
+	void IncrementPmark(int how);
+	void DecrementPmark(int how);
 
 };
 
