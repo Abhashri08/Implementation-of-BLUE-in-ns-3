@@ -97,8 +97,8 @@ protected:
 	
 
 
-	void IncrementPmark(int how);
-	void DecrementPmark(int how);
+	void IncrementPmark();
+	void DecrementPmark();
 
 };
 
