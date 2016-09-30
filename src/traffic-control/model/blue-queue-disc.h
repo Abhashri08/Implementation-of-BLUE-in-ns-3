@@ -62,9 +62,9 @@ private:
 	double increment;                       // marking probability increment value
 	double iholdtime;                       // last time at which pmark incremented 
 	double dholdtime;                       // last time at which pmark decremented
-	int dalgorithm;                         //??
-	int ialgorithm;                         //??
-	double bandwidth;                       //??
+	int dalgorithm;                         // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
+	int ialgorithm;                         // which increment algo to use (refer to ns-2 code) (default is additive increase)
+	double bandwidth;                       //
 
 	int idle;                               //??
 	double idletime;                        //??
@@ -80,25 +80,16 @@ protected:
 	bool DoEnqueue(Ptr<QueueDiscItem> item);
 	Ptr<QueueDiscItem DoDequeue(void);
 	
-
+        void InitializeParams (void);
 	
 	void DoReset();
 	void plot();
 	void plot1(int qlen);
 	void pmark_plot(int method);
 
-        /**
-          * \brief Check if a packet needs to be dropped due to probability drop
-          * \param item queue item
-          * \param qSize queue size
-          * \returns 0 for no drop, 1 for drop
-          */
         bool DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize);                
-	
-
-
-	void IncrementPmark();
-	void DecrementPmark();
+	void IncrementPmark(int how);           // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
+	void DecrementPmark(int how);           // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
 
 };
 
