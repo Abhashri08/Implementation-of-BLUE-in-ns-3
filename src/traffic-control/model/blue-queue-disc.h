@@ -53,6 +53,7 @@ public:
   ~BlueQueueDisc ();
 
 private:
+        int drop_front;                         // drop-from-front (rather than from tail)
 	int bytes;                              //??
 	int dummy;                              //??
 	int setbit;                             // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
@@ -68,10 +69,30 @@ private:
 	int idle;                               //??
 	double idletime;                        //??
 	double ptc;                             //??
-	double ifreezetime_;                    // Time interval during which pmark_ cannot be increased
-	double dfreezetime_;                    // Time interval during which pmark_ cannot be decreased
-	double pmark_;                          // Marking Probability
+	double ifreezetime;                     // Time interval during which pmark cannot be increased
+	double dfreezetime;                     // Time interval during which pmark cannot be decreased
+	double pmark;                           // Marking Probability
 
+
+protected:
+	int command(int argc, const char*const* argv);
+        
+        PacketQueue *q_;	/* underlying FIFO queue */ 
+	void enque(Packet*);
+	Packet* deque();
+	
+
+	
+	void reset();
+	void plot();
+	void plot1(int qlen);
+	void pmark_plot(int method);
+	int drop_early(Packet*);                
+	
+
+
+	void increment_pmark(int how);
+	void decrement_pmark(int how);
 
 };
 
