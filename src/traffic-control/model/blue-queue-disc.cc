@@ -37,117 +37,68 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("PieQueueDisc");
+NS_LOG_COMPONENT_DEFINE ("BlueQueueDisc");
 
-NS_OBJECT_ENSURE_REGISTERED (PieQueueDisc);
+NS_OBJECT_ENSURE_REGISTERED (BlueQueueDisc);
 
 TypeId PieQueueDisc::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::PieQueueDisc")
+  static TypeId tid = TypeId ("ns3::BlueQueueDisc")
     .SetParent<QueueDisc> ()
     .SetGroupName ("TrafficControl")
-    .AddConstructor<PieQueueDisc> ()
+    .AddConstructor<BlueQueueDisc> ()
     .AddAttribute ("Mode",
                    "Determines unit for QueueLimit",
                    EnumValue (Queue::QUEUE_MODE_PACKETS),
-                   MakeEnumAccessor (&PieQueueDisc::SetMode),
+                   MakeEnumAccessor (&BlueQueueDisc::SetMode),
                    MakeEnumChecker (Queue::QUEUE_MODE_BYTES, "QUEUE_MODE_BYTES",
                                     Queue::QUEUE_MODE_PACKETS, "QUEUE_MODE_PACKETS"))
     .AddAttribute ("MeanPktSize",
                    "Average of packet size",
                    UintegerValue (1000),
-                   MakeUintegerAccessor (&PieQueueDisc::m_meanPktSize),
+                   MakeUintegerAccessor (&BlueQueueDisc::mean_pktsize),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("A",
-                   "Value of alpha",
-                   DoubleValue (0.125),
-                   MakeDoubleAccessor (&PieQueueDisc::m_a),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("B",
-                   "Value of beta",
-                   DoubleValue (1.25),
-                   MakeDoubleAccessor (&PieQueueDisc::m_b),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("Tupdate",
-                   "Time period to calculate drop probability",
-                   TimeValue (Seconds (0.03)),
-                   MakeTimeAccessor (&PieQueueDisc::m_tUpdate),
-                   MakeTimeChecker ())
-    .AddAttribute ("Supdate",
-                   "Start time of the update timer",
-                   TimeValue (Seconds (0)),
-                   MakeTimeAccessor (&PieQueueDisc::m_sUpdate),
-                   MakeTimeChecker ())
-    .AddAttribute ("QueueLimit",
-                   "Queue limit in bytes/packets",
-                   UintegerValue (25),
-                   MakeUintegerAccessor (&PieQueueDisc::SetQueueLimit),
-                   MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("DequeueThreshold",
-                   "Minimum queue size in bytes before dequeue rate is measured",
-                   UintegerValue (10000),
-                   MakeUintegerAccessor (&PieQueueDisc::m_dqThreshold),
-                   MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("QueueDelayReference",
-                   "Desired queue delay",
-                   TimeValue (Seconds (0.02)),
-                   MakeTimeAccessor (&PieQueueDisc::m_qDelayRef),
-                   MakeTimeChecker ())
-    .AddAttribute ("MaxBurstAllowance",
-                   "Current max burst allowance in seconds before random drop",
-                   TimeValue (Seconds (0.1)),
-                   MakeTimeAccessor (&PieQueueDisc::m_maxBurst),
-                   MakeTimeChecker ())
   ;
 
   return tid;
 }
 
-PieQueueDisc::PieQueueDisc ()
+BlueQueueDisc::BlueQueueDisc ()
   : QueueDisc ()
 {
-  NS_LOG_FUNCTION (this);
-  m_uv = CreateObject<UniformRandomVariable> ();
-  m_rtrsEvent = Simulator::Schedule (m_sUpdate, &PieQueueDisc::CalculateP, this);
+  NS_LOG_FUNCTION (this)
+  //event = Simulator::Schedule (m_sUpdate, &PieQueueDisc::CalculateP, this);   //
 }
 
-PieQueueDisc::~PieQueueDisc ()
+BlueQueueDisc::~BlueQueueDisc ()
 {
   NS_LOG_FUNCTION (this);
 }
 
-void
-PieQueueDisc::DoDispose (void)
-{
-  NS_LOG_FUNCTION (this);
-  m_uv = 0;
-  Simulator::Remove (m_rtrsEvent);
-  QueueDisc::DoDispose ();
-}
 
 void
-PieQueueDisc::SetMode (Queue::QueueMode mode)
+BlueQueueDisc::SetMode (Queue::QueueMode mode)
 {
   NS_LOG_FUNCTION (this << mode);
   m_mode = mode;
 }
 
 Queue::QueueMode
-PieQueueDisc::GetMode (void)
+BlueQueueDisc::GetMode (void)
 {
   NS_LOG_FUNCTION (this);
   return m_mode;
 }
 
 void
-PieQueueDisc::SetQueueLimit (uint32_t lim)
+BlueQueueDisc::SetQueueLimit (uint32_t lim)
 {
   NS_LOG_FUNCTION (this << lim);
   m_queueLimit = lim;
 }
 
 uint32_t
-PieQueueDisc::GetQueueSize (void)
+BlueQueueDisc::GetQueueSize (void)
 {
   NS_LOG_FUNCTION (this);
   if (GetMode () == Queue::QUEUE_MODE_BYTES)
@@ -160,34 +111,19 @@ PieQueueDisc::GetQueueSize (void)
     }
   else
     {
-      NS_ABORT_MSG ("Unknown PIE mode.");
+      NS_ABORT_MSG ("Unknown Blue mode.");
     }
 }
 
-PieQueueDisc::Stats
-PieQueueDisc::GetStats ()
-{
-  NS_LOG_FUNCTION (this);
-  return m_stats;
-}
-
 Time
-PieQueueDisc::GetQueueDelay (void)
+BlueQueueDisc::GetQueueDelay (void)
 {
   NS_LOG_FUNCTION (this);
   return m_qDelay;
 }
 
-int64_t
-PieQueueDisc::AssignStreams (int64_t stream)
-{
-  NS_LOG_FUNCTION (this << stream);
-  m_uv->SetStream (stream);
-  return 1;
-}
-
 bool
-PieQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
+BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 {
   NS_LOG_FUNCTION (this << item);
 
@@ -198,19 +134,22 @@ PieQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
     {
       // Drops due to queue limit: reactive
       Drop (item);
-      m_stats.forcedDrop++;
       return false;
     }
   else if (DropEarly (item, nQueued))
     {
       // Early probability drop: proactive
       Drop (item);
-      m_stats.unforcedDrop++;
       return false;
     }
 
   // No drop
   bool retval = GetInternalQueue (0)->Enqueue (item);
+
+  /** 
+        FP1: Query
+        When to call increment pmark
+  */
 
   // If Queue::Enqueue fails, QueueDisc::Drop is called by the internal queue
   // because QueueDisc::AddInternalQueue sets the drop callback
@@ -222,21 +161,13 @@ PieQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 }
 
 void
-PieQueueDisc::InitializeParams (void)
+BlueQueueDisc::InitializeParams (void)
 {
   // Initially queue is empty so variables are initialize to zero except m_dqCount
-  m_inMeasurement = false;
-  m_dqCount = -1;
-  m_dropProb = 0;
-  m_avgDqRate = 0.0;
-  m_dqStart = 0;
-  m_burstState = NO_BURST;
-  m_qDelayOld = Time (Seconds (0));
-  m_stats.forcedDrop = 0;
-  m_stats.unforcedDrop = 0;
+
 }
 
-bool PieQueueDisc::DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize)
+bool BlueQueueDisc::DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize)
 {
   NS_LOG_FUNCTION (this << item << qSize);
   if (m_burstAllowance.GetSeconds () > 0)

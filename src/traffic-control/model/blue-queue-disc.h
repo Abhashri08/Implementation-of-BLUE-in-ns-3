@@ -53,6 +53,10 @@ public:
   ~BlueQueueDisc ();
 
 private:
+        Queue::QueueMode m_mode;                //!< Mode (bytes or packets)
+        uint32_t m_queueLimit;                  //!< Queue limit in bytes / packets
+        Time m_qDelay;                          //!< Current value of queue delay
+        Ptr<UniformRandomVariable> m_uv         //!< Rng stream
         int drop_front;                         // drop-from-front (rather than from tail)
 	int bytes;                              //??
 	int dummy;                              //??
@@ -72,13 +76,14 @@ private:
 	double ifreezetime;                     // Time interval during which pmark cannot be increased
 	double dfreezetime;                     // Time interval during which pmark cannot be decreased
 	double pmark;                           // Marking Probability
-
+        
+        EventId event;                          // It is use to decide which event is triggered (Link is idle or queue bursting) 
 
 protected:
-	int command(int argc, const char*const* argv);
+         
         
 	bool DoEnqueue(Ptr<QueueDiscItem> item);
-	Ptr<QueueDiscItem DoDequeue(void);
+	Ptr<QueueDiscItem> DoDequeue(void);
 	
         void InitializeParams (void);
 	
