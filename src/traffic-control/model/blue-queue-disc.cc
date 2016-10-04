@@ -218,116 +218,95 @@ bool BlueQueueDisc::DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize)
   return true;
 }
 
-void PieQueueDisc::CalculateP ()
+void BlueQueueDisc::IncrementPmark (int how)
 {
   NS_LOG_FUNCTION (this);
-  Time qDelay;
-  double p = 0.0;
-  bool missingInitFlag = false;
-  if (m_avgDqRate > 0)
-    {
-      qDelay = Time (Seconds (GetInternalQueue (0)->GetNBytes () / m_avgDqRate));
-    }
-  else
-    {
-      qDelay = Time (Seconds (0));
-      missingInitFlag = true;
-    }
+  //TODO Check how to get current time 
+  double now ;//= Scheduler::instance().clock();
 
-  m_qDelay = qDelay;
-
-  if (m_burstAllowance.GetSeconds () > 0)
-    {
-      m_dropProb = 0;
+  if (now - ifreezetime > iholdtime) {
+    ifreezetime = now;
+    switch (ialgorithm) {
+      case 0:
+        switch (how) {
+          case 0:
+            pmark += increment;
+            break;
+			    case 1:
+			    default:
+				    break;
+		    }
+		    break;
+      
+      case 2:
+        switch (how) {
+			    case 0:
+            pmark = 2*pmark + increment;
+				    break;         
+    			case 1:
+		    	default:
+				    break;
+		    }
+        //TODO break missing
+    	default:
+    	case 1:
+    		switch (how) {
+		    	case 0:
+            pmark += increment;
+    				break;
+          case 1:
+          default:
+            pmark += increment/10;
+    				break;
+		    }
+      }
+      if (pmark > 1.0) 
+        pmark = 1.00;
     }
-  else
-    {
-      p = m_a * (qDelay.GetSeconds () - m_qDelayRef.GetSeconds ()) + m_b * (qDelay.GetSeconds () - m_qDelayOld.GetSeconds ());
-      if (m_dropProb < 0.001)
-        {
-          p /= 32;
-        }
-      else if (m_dropProb < 0.01)
-        {
-          p /= 8;
-        }
-      else if (m_dropProb < 0.1)
-        {
-          p /= 2;
-        }
-      else if (m_dropProb < 1)
-        {
-          p /= 0.5;
-        }
-      else if (m_dropProb < 10)
-        {
-          p /= 0.125;
-        }
-      else
-        {
-          p /= 0.03125;
-        }
-      if ((m_dropProb >= 0.1) && (p > 0.02))
-        {
-          p = 0.02;
-        }
-    }
-
-  p += m_dropProb;
-
-  // For non-linear drop in prob
-
-  if (qDelay.GetSeconds () == 0 && m_qDelayOld.GetSeconds () == 0)
-    {
-      p *= 0.98;
-    }
-  else if (qDelay.GetSeconds () > 0.2)
-    {
-      p += 0.02;
-    }
-
-  m_dropProb = (p > 0) ? p : 0;
-  if (m_burstAllowance < m_tUpdate)
-    {
-      m_burstAllowance =  Time (Seconds (0));
-    }
-  else
-    {
-      m_burstAllowance -= m_tUpdate;
-    }
-
-  uint32_t burstResetLimit = BURST_RESET_TIMEOUT / m_tUpdate.GetSeconds ();
-  if ( (qDelay.GetSeconds () < 0.5 * m_qDelayRef.GetSeconds ()) && (m_qDelayOld.GetSeconds () < (0.5 * m_qDelayRef.GetSeconds ())) && (m_dropProb == 0) && !missingInitFlag )
-    {
-      m_dqCount = -1;
-      m_avgDqRate = 0.0;
-    }
-  if ( (qDelay.GetSeconds () < 0.5 * m_qDelayRef.GetSeconds ()) && (m_qDelayOld.GetSeconds () < (0.5 * m_qDelayRef.GetSeconds ())) && (m_dropProb == 0) && (m_burstAllowance.GetSeconds () == 0))
-    {
-      if (m_burstState == IN_BURST_PROTECTING)
-        {
-          m_burstState = IN_BURST;
-          m_burstReset = 0;
-        }
-      else if (m_burstState == IN_BURST)
-        {
-          m_burstReset++;
-          if (m_burstReset > burstResetLimit)
-            {
-              m_burstReset = 0;
-              m_burstState = NO_BURST;
-            }
-        }
-    }
-  else if (m_burstState == IN_BURST)
-    {
-      m_burstReset = 0;
-    }
-
-  m_qDelayOld = qDelay;
-  m_rtrsEvent = Simulator::Schedule (m_tUpdate, &PieQueueDisc::CalculateP, this);
+    //TODO What is significance of below linw and how can we update it for blue
+    //m_rtrsEvent = Simulator::Schedule (m_tUpdate, &BlueQueueDisc::IncrementPmark, this);
 }
 
+void BlueQueueDisc::DecrementPmark (int how)
+{
+  NS_LOG_FUNCTION (this);
+  //TODO Check how to get current time 
+  double now ;//= Scheduler::instance().clock();
+	if (now - dfreezetime > dholdtime) {
+		dfreezetime = now;
+    	switch (dalgorithm) {
+    	  case 0:
+	      case 2:
+		      switch (how) {
+			      case 0:
+        			pmark -= decrement;
+				      break;
+			      case 1:
+			      default:
+				      break;
+		      } 
+		      break;
+    	
+        default:
+    	  case 1:
+		      switch (how) {
+			      case 0:
+        		  pmark -= decrement;
+				      break;
+			      case 1:
+			      default:
+        			pmark -= decrement/10;
+				      break;
+		      }
+    	  }
+    	  if (pmark < 0)
+		      pmark = 0.0;
+      }
+    //TODO What is significance of below linw and how can we update it for blue
+    //m_rtrsEvent = Simulator::Schedule (m_tUpdate, &BlueQueueDisc::DecrementPmark, this);
+}
+  
+  
 Ptr<QueueDiscItem>
 PieQueueDisc::DoDequeue ()
 {

@@ -80,21 +80,23 @@ private:
         EventId event;                          // It is use to decide which event is triggered (Link is idle or queue bursting) 
 
 protected:
-         
+	void InitializeParams (void);         
         
 	bool DoEnqueue(Ptr<QueueDiscItem> item);
 	Ptr<QueueDiscItem> DoDequeue(void);
-	
-        void InitializeParams (void);
-	
+
+	void IncrementPmark(int how);           // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
+	void DecrementPmark(int how);           // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
+
+	bool DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize);
+
 	void DoReset();
+
 	void plot();
 	void plot1(int qlen);
 	void pmark_plot(int method);
 
-        bool DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize);                
-	void IncrementPmark(int how);           // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
-	void DecrementPmark(int how);           // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
+                
 
 };
 
