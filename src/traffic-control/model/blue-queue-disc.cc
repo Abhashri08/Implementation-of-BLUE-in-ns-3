@@ -66,7 +66,8 @@ TypeId PieQueueDisc::GetTypeId (void)
 BlueQueueDisc::BlueQueueDisc ()
   : QueueDisc ()
 {
-  NS_LOG_FUNCTION (this)
+  NS_LOG_FUNCTION (this);
+  m_uv = CreateObject<UniformRandomVariable> ();
   //event = Simulator::Schedule (m_sUpdate, &PieQueueDisc::CalculateP, this);   //
 }
 
@@ -75,6 +76,14 @@ BlueQueueDisc::~BlueQueueDisc ()
   NS_LOG_FUNCTION (this);
 }
 
+void
+BlueQueueDisc::DoDispose (void)
+{
+  NS_LOG_FUNCTION (this);
+  m_uv = 0;
+  //Simulator::Remove (m_rtrsEvent);
+  QueueDisc::DoDispose ();
+}
 
 void
 BlueQueueDisc::SetMode (Queue::QueueMode mode)
@@ -120,6 +129,14 @@ BlueQueueDisc::GetQueueDelay (void)
 {
   NS_LOG_FUNCTION (this);
   return m_qDelay;
+}
+  
+int64_t
+BlueQueueDisc::AssignStreams (int64_t stream)
+{
+  NS_LOG_FUNCTION (this << stream);
+  m_uv->SetStream (stream);
+  return 1;
 }
 
 bool
@@ -274,34 +291,34 @@ void BlueQueueDisc::DecrementPmark (int how)
   double now ;//= Scheduler::instance().clock();
 	if (now - dfreezetime > dholdtime) {
 		dfreezetime = now;
-    	switch (dalgorithm) {
-    	  case 0:
-	      case 2:
-		      switch (how) {
-			      case 0:
-        			pmark -= decrement;
-				      break;
-			      case 1:
-			      default:
-				      break;
-		      } 
-		      break;
-    	
-        default:
-    	  case 1:
-		      switch (how) {
-			      case 0:
-        		  pmark -= decrement;
-				      break;
-			      case 1:
-			      default:
-        			pmark -= decrement/10;
-				      break;
-		      }
-    	  }
-    	  if (pmark < 0)
-		      pmark = 0.0;
-      }
+	    	switch (dalgorithm) {
+	    	  case 0:
+		      case 2:
+			      switch (how) {
+				      case 0:
+					pmark -= decrement;
+					      break;
+				      case 1:
+				      default:
+					      break;
+			      } 
+			      break;
+	    	
+		default:
+	    	  case 1:
+			      switch (how) {
+				      case 0:
+				  pmark -= decrement;
+					      break;
+				      case 1:
+				      default:
+					pmark -= decrement/10;
+					      break;
+			      }
+	    	  }
+	    	  if (pmark < 0)
+			      pmark = 0.0;
+	      }
     //TODO What is significance of below linw and how can we update it for blue
     //m_rtrsEvent = Simulator::Schedule (m_tUpdate, &BlueQueueDisc::DecrementPmark, this);
 }

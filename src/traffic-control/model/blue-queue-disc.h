@@ -49,53 +49,157 @@ class UniformRandomVariable;
 class BlueQueueDisc : public QueueDisc
 {
 public:
+  /**
+   * \brief Get the type ID.
+   * \return the object TypeId
+   */
+  static TypeId GetTypeId (void);
+  
+  /**
+   * \brief BlueQueueDisc Constructor
+   */  
   BlueQueueDisc ();
-  ~BlueQueueDisc ();
+  
+  /**
+   * \brief PieQueueDisc Destructor
+   */
+  virtual ~BlueQueueDisc ();
 
+  /**
+   * \brief Stats
+   */
+  typedef struct
+  {
+    uint32_t unforcedDrop;      //!< Early probability drops: proactive
+    uint32_t forcedDrop;        //!< Drops due to queue limit: reactive
+  } Stats;
+  
+  /**
+   * \brief Burst types
+   */
+  enum BurstStateT
+  {
+    NO_BURST,
+    IN_BURST,
+    IN_BURST_PROTECTING,
+  };
+
+  /**
+   * \brief Set the operating mode of this queue.
+   *
+   * \param mode The operating mode of this queue.
+   */
+  void SetMode (Queue::QueueMode mode);
+  
+  /**
+   * \brief Get the encapsulation mode of this queue.
+   *
+   * \returns The encapsulation mode of this queue.
+   */
+  Queue::QueueMode GetMode (void);
+
+  /**
+   * \brief Get the current value of the queue in bytes or packets.
+   *
+   * \returns The queue size in bytes or packets.
+   */
+  uint32_t GetQueueSize (void);
+
+  /**
+   * \brief Set the limit of the queue in bytes or packets.
+   *
+   * \param lim The limit in bytes or packets.
+   */
+  void SetQueueLimit (uint32_t lim);
+
+  /**
+   * \brief Get queue delay
+   */
+  Time GetQueueDelay (void);
+
+  /**
+   * \brief Get PIE statistics after running.
+   *
+   * \returns The drop statistics.
+   */
+  Stats GetStats ();
+
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
+  int64_t AssignStreams (int64_t stream);
+
+
+protected:
+
+  /**
+   * \brief Dispose of the object
+   */
+  virtual void DoDispose (void);
+  
+  
+  /**
+   * \brief Initialize the queue parameters.
+   */
+  virtual void InitializeParams (voi        
+        
+	virtual bool DoEnqueue(Ptr<QueueDiscItem> item);
+	virtual Ptr<QueueDiscItem> DoDequeue(void);
+
+	virtual void IncrementPmark(int how);           // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
+	virtual void DecrementPmark(int how);           // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
+
+  /**
+   * \brief Check if a packet needs to be dropped due to probability drop
+   * \param item queue item
+   * \param qSize queue size
+   * \returns false for no drop, true for drop
+   */
+	virtual bool DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize);
+
+	virtual void DoReset();
+
+	void plot();
+	void plot1(int qlen);
+	void pmark_plot(int method);
+
+  
 private:
-        Queue::QueueMode m_mode;                //!< Mode (bytes or packets)
-        uint32_t m_queueLimit;                  //!< Queue limit in bytes / packets
-        Time m_qDelay;                          //!< Current value of queue delay
-        Ptr<UniformRandomVariable> m_uv         //!< Rng stream
-        int drop_front;                         // drop-from-front (rather than from tail)
+  
+  Queue::QueueMode m_mode;                //!< Mode (bytes or packets)
+  uint32_t m_queueLimit;                  //!< Queue limit in bytes / packets
+  Time m_qDelay;                          //!< Current value of queue delay
+  
+  
+  Ptr<UniformRandomVariable> m_uv         //!< Rng stream
+
+
+  int drop_front;                         // drop-from-front (rather than from tail)
 	int bytes;                              //??
 	int dummy;                              //??
 	int setbit;                             // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
 	int mean_pktsize;                       // Average Packet Size
 	double decrement;                       // marking probability decrement value
 	double increment;                       // marking probability increment value
-	double iholdtime;                       // last time at which pmark incremented 
-	double dholdtime;                       // last time at which pmark decremented
+	Time iholdtime;                       // last time at which pmark incremented 
+	Time dholdtime;                       // last time at which pmark decremented
 	int dalgorithm;                         // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
 	int ialgorithm;                         // which increment algo to use (refer to ns-2 code) (default is additive increase)
 	double bandwidth;                       //
 
 	int idle;                               //??
-	double idletime;                        //??
+	Time idletime;                        //??
 	double ptc;                             //??
-	double ifreezetime;                     // Time interval during which pmark cannot be increased
-	double dfreezetime;                     // Time interval during which pmark cannot be decreased
+	Time ifreezetime;                     // Time interval during which pmark cannot be increased
+	Time dfreezetime;                     // Time interval during which pmark cannot be decreased
 	double pmark;                           // Marking Probability
         
-        EventId event;                          // It is use to decide which event is triggered (Link is idle or queue bursting) 
-
-protected:
-	void InitializeParams (void);         
-        
-	bool DoEnqueue(Ptr<QueueDiscItem> item);
-	Ptr<QueueDiscItem> DoDequeue(void);
-
-	void IncrementPmark(int how);           // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
-	void DecrementPmark(int how);           // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
-
-	bool DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize);
-
-	void DoReset();
-
-	void plot();
-	void plot1(int qlen);
-	void pmark_plot(int method);
-
+  EventId event;                          // It is use to decide which event is triggered (Link is idle or queue bursting) 
                 
 
 };
