@@ -41,7 +41,7 @@ NS_LOG_COMPONENT_DEFINE ("BlueQueueDisc");
 
 NS_OBJECT_ENSURE_REGISTERED (BlueQueueDisc);
 
-TypeId PieQueueDisc::GetTypeId (void)
+TypeId BlueQueueDisc::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::BlueQueueDisc")
     .SetParent<QueueDisc> ()
@@ -56,8 +56,58 @@ TypeId PieQueueDisc::GetTypeId (void)
     .AddAttribute ("MeanPktSize",
                    "Average of packet size",
                    UintegerValue (1000),
-                   MakeUintegerAccessor (&BlueQueueDisc::mean_pktsize),
+                   MakeUintegerAccessor (&BlueQueueDisc::m_meanPktSize),
                    MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("QueueLimit",
+                   "Queue limit in bytes/packets",
+                   UintegerValue (25),
+                   MakeUintegerAccessor (&BlueQueueDisc::SetQueueLimit),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("increment",
+                   "Pmark increment value",
+                   DoubleValue (0.25),
+                   MakeDoubleAccessor (&BlueQueueDisc::m_increment),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("decrement",
+                   "Pmark decrement Value",
+                   DoubleValue (0.00025),
+                   MakeDoubleAccessor (&BlueQueueDisc::m_decrement),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("iholdtime",
+                   "Value of increment hold time",
+                   TimeValue (Seconds (0.1)),
+                   MakeTimeAccessor (&BlueQueueDisc::m_iHoldTime),
+                   MakeTimeChecker ())
+    .AddAttribute ("dholdtime",
+                   "Value of decrement hold time",
+                   TimeValue (Seconds (0.1)),
+                   MakeTimeAccessor (&BlueQueueDisc::m_dHoldTime),
+                   MakeTimeChecker ())
+    .AddAttribute ("ifreezetime",
+                   "Value of ifreezetime",
+                   TimeValue (Seconds (0.1)),
+                   MakeTimeAccessor (&BlueQueueDisc::m_iFreezeTime),
+                   MakeTimeChecker ())
+    .AddAttribute ("dfreezetime",
+                   "Value of dfreezetime",
+                   TimeValue (Seconds (0.1)),
+                   MakeTimeAccessor (&BlueQueueDisc::m_dFreezeTime),
+                   MakeTimeChecker ())
+    .AddAttribute ("dalgorithm",
+                   "Decrement Algorithm to use",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&BlueQueueDisc::m_dAlgorithm),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("ialgorithm",
+                   "Increment Algorithm to use",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&BlueQueueDisc::m_iAlgorithm),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("Pmark",
+                   "Marking Probabilty",
+                   DoubleValue (0),
+                   MakeDoubleAccessor (&BlueQueueDisc::m_Pmark),
+                   MakeDoubleChecker<double> ())
   ;
 
   return tid;
@@ -68,7 +118,6 @@ BlueQueueDisc::BlueQueueDisc ()
 {
   NS_LOG_FUNCTION (this);
   m_uv = CreateObject<UniformRandomVariable> ();
-  //event = Simulator::Schedule (m_sUpdate, &PieQueueDisc::CalculateP, this);   //
 }
 
 BlueQueueDisc::~BlueQueueDisc ()
@@ -81,7 +130,6 @@ BlueQueueDisc::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
   m_uv = 0;
-  //Simulator::Remove (m_rtrsEvent);
   QueueDisc::DoDispose ();
 }
 
@@ -124,12 +172,6 @@ BlueQueueDisc::GetQueueSize (void)
     }
 }
 
-Time
-BlueQueueDisc::GetQueueDelay (void)
-{
-  NS_LOG_FUNCTION (this);
-  return m_qDelay;
-}
   
 int64_t
 BlueQueueDisc::AssignStreams (int64_t stream)
@@ -150,12 +192,14 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
       || (GetMode () == Queue::QUEUE_MODE_BYTES && nQueued + item->GetPacketSize () > m_queueLimit))
     {
       // Drops due to queue limit: reactive
+		IncrementPmark(0);
       Drop (item);
       return false;
     }
   else if (DropEarly (item, nQueued))
     {
       // Early probability drop: proactive
+		
       Drop (item);
       return false;
     }
@@ -163,7 +207,7 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
   // No drop
   bool retval = GetInternalQueue (0)->Enqueue (item);
 
-  /** 
+  /** TODO
         FP1: Query
         When to call increment pmark
   */
@@ -180,76 +224,40 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 void
 BlueQueueDisc::InitializeParams (void)
 {
-  // Initially queue is empty so variables are initialize to zero except m_dqCount
 
 }
 
 bool BlueQueueDisc::DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize)
 {
   NS_LOG_FUNCTION (this << item << qSize);
-  if (m_burstAllowance.GetSeconds () > 0)
-    {
-      // If there is still burst_allowance left, skip random early drop.
-      return false;
-    }
-
-  if (m_burstState == NO_BURST)
-    {
-      m_burstState = IN_BURST_PROTECTING;
-      m_burstAllowance = m_maxBurst;
-    }
-
-  double p = m_dropProb;
-
-  uint32_t packetSize = item->GetPacketSize ();
-
-  if (GetMode () == Queue::QUEUE_MODE_BYTES)
-    {
-      p = p * packetSize / m_meanPktSize;
-    }
-  bool earlyDrop = true;
-  double u =  m_uv->GetValue ();
-
-  if ((m_qDelayOld.GetSeconds () < (0.5 * m_qDelayRef.GetSeconds ())) && (m_dropProb < 0.2))
-    {
-      return false;
-    }
-  else if (GetMode () == Queue::QUEUE_MODE_BYTES && qSize <= 2 * m_meanPktSize)
-    {
-      return false;
-    }
-  else if (GetMode () == Queue::QUEUE_MODE_PACKETS && qSize <= 2)
-    {
-      return false;
-    }
-
-  if (u > p)
-    {
-      earlyDrop = false;
-    }
-  if (!earlyDrop)
-    {
-      return false;
-    }
-
+  //TODO Whether to consider queue overflow condition here
+	//TODO Whether to write code for ECN Support
+	double u =  m_uv->GetValue();
+	if (u <= m_Pmark) 
+	{
+		return true;
+	}
   return true;
 }
 
 void BlueQueueDisc::IncrementPmark (int how)
 {
   NS_LOG_FUNCTION (this);
-  //TODO Check how to get current time 
-  double now ;//= Scheduler::instance().clock();
+  Time now = Simulator::Now ();
 
-  if (now - ifreezetime > iholdtime) {
-    ifreezetime = now;
-    switch (ialgorithm) {
+  if (now - m_iFreezeTime > m_iHoldTime) 
+  {
+    m_iFreezeTime = now;
+    switch (m_iAlgorithm) 
+    {
       case 0:
-        switch (how) {
+        switch (how) 
+        {
           case 0:
-            pmark += increment;
+            m_Pmark += m_increment;
             break;
-			    case 1:
+			  
+          case 1:
 			    default:
 				    break;
 		    }
@@ -258,7 +266,7 @@ void BlueQueueDisc::IncrementPmark (int how)
       case 2:
         switch (how) {
 			    case 0:
-            pmark = 2*pmark + increment;
+            m_Pmark = 2*m_Pmark + m_increment;
 				    break;         
     			case 1:
 		    	default:
@@ -269,34 +277,32 @@ void BlueQueueDisc::IncrementPmark (int how)
     	case 1:
     		switch (how) {
 		    	case 0:
-            pmark += increment;
+            m_Pmark += m_increment;
     				break;
           case 1:
           default:
-            pmark += increment/10;
+            m_Pmark += m_increment/10;
     				break;
 		    }
       }
-      if (pmark > 1.0) 
-        pmark = 1.00;
+      if (m_Pmark > 1.0) 
+        m_Pmark = 1.00;
     }
-    //TODO What is significance of below linw and how can we update it for blue
-    //m_rtrsEvent = Simulator::Schedule (m_tUpdate, &BlueQueueDisc::IncrementPmark, this);
 }
 
 void BlueQueueDisc::DecrementPmark (int how)
 {
   NS_LOG_FUNCTION (this);
   //TODO Check how to get current time 
-  double now ;//= Scheduler::instance().clock();
-	if (now - dfreezetime > dholdtime) {
-		dfreezetime = now;
-	    	switch (dalgorithm) {
+  Time now = Simulator::Now ();
+	if (now - m_dFreezeTime > m_dHoldTime) {
+		m_dFreezeTime = now;
+	    	switch (m_dAlgorithm) {
 	    	  case 0:
 		      case 2:
 			      switch (how) {
 				      case 0:
-					pmark -= decrement;
+					m_Pmark -= m_decrement;
 					      break;
 				      case 1:
 				      default:
@@ -308,16 +314,16 @@ void BlueQueueDisc::DecrementPmark (int how)
 	    	  case 1:
 			      switch (how) {
 				      case 0:
-				  pmark -= decrement;
+				  m_Pmark -= m_decrement;
 					      break;
 				      case 1:
 				      default:
-					pmark -= decrement/10;
+					m_Pmark -= m_decrement/10;
 					      break;
 			      }
 	    	  }
-	    	  if (pmark < 0)
-			      pmark = 0.0;
+	    	  if (m_Pmark < 0)
+			      m_Pmark = 0.0;
 	      }
     //TODO What is significance of below linw and how can we update it for blue
     //m_rtrsEvent = Simulator::Schedule (m_tUpdate, &BlueQueueDisc::DecrementPmark, this);
@@ -325,7 +331,7 @@ void BlueQueueDisc::DecrementPmark (int how)
   
   
 Ptr<QueueDiscItem>
-PieQueueDisc::DoDequeue ()
+BlueQueueDisc::DoDequeue ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -336,61 +342,15 @@ PieQueueDisc::DoDequeue ()
     }
 
   Ptr<QueueDiscItem> item = StaticCast<QueueDiscItem> (GetInternalQueue (0)->Dequeue ());
-  double now = Simulator::Now ().GetSeconds ();
-  uint32_t pktSize = item->GetPacketSize ();
-
-  // if not in a measurement cycle and the queue has built up to dq_threshold,
-  // start the measurement cycle
-
-  if ( (GetInternalQueue (0)->GetNBytes () >= m_dqThreshold) && (!m_inMeasurement) )
-    {
-      m_dqStart = now;
-      m_dqCount = 0;
-      m_inMeasurement = true;
-    }
-
-  if (m_inMeasurement)
-    {
-      m_dqCount += pktSize;
-
-      // done with a measurement cycle
-      if (m_dqCount >= m_dqThreshold)
-        {
-
-          double tmp = now - m_dqStart;
-
-          if (tmp > 0)
-            {
-              if (m_avgDqRate == 0)
-                {
-                  m_avgDqRate = m_dqCount / tmp;
-                }
-              else
-                {
-                  m_avgDqRate = (0.5 * m_avgDqRate) + (0.5 * (m_dqCount / tmp));
-                }
-            }
-
-          // restart a measurement cycle if there is enough data
-          if (GetInternalQueue (0)->GetNBytes () > m_dqThreshold)
-            {
-              m_dqStart = now;
-              m_dqCount = 0;
-              m_inMeasurement = true;
-            }
-          else
-            {
-              m_dqCount = 0;
-              m_inMeasurement = false;
-            }
-        }
-    }
+	
+	//TODO When to call DecrementPmark
+	DecrementPmark(0);
 
   return item;
 }
-
+	
 Ptr<const QueueDiscItem>
-PieQueueDisc::DoPeek () const
+BlueQueueDisc::DoPeek () const
 {
   NS_LOG_FUNCTION (this);
   if (GetInternalQueue (0)->IsEmpty ())
@@ -406,20 +366,20 @@ PieQueueDisc::DoPeek () const
 
   return item;
 }
-
+	
 bool
-PieQueueDisc::CheckConfig (void)
+BlueQueueDisc::CheckConfig (void)
 {
   NS_LOG_FUNCTION (this);
   if (GetNQueueDiscClasses () > 0)
     {
-      NS_LOG_ERROR ("PieQueueDisc cannot have classes");
+      NS_LOG_ERROR ("BlueQueueDisc cannot have classes");
       return false;
     }
 
   if (GetNPacketFilters () > 0)
     {
-      NS_LOG_ERROR ("PieQueueDisc cannot have packet filters");
+      NS_LOG_ERROR ("BlueQueueDisc cannot have packet filters");
       return false;
     }
 
@@ -440,13 +400,13 @@ PieQueueDisc::CheckConfig (void)
 
   if (GetNInternalQueues () != 1)
     {
-      NS_LOG_ERROR ("PieQueueDisc needs 1 internal queue");
+      NS_LOG_ERROR ("BlueQueueDisc needs 1 internal queue");
       return false;
     }
 
   if (GetInternalQueue (0)->GetMode () != m_mode)
     {
-      NS_LOG_ERROR ("The mode of the provided queue does not match the mode set on the PieQueueDisc");
+      NS_LOG_ERROR ("The mode of the provided queue does not match the mode set on the BlueQueueDisc");
       return false;
     }
 
@@ -459,5 +419,6 @@ PieQueueDisc::CheckConfig (void)
 
   return true;
 }
+
 
 } //namespace ns3

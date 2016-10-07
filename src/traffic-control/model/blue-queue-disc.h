@@ -65,24 +65,7 @@ public:
    */
   virtual ~BlueQueueDisc ();
 
-  /**
-   * \brief Stats
-   */
-  typedef struct
-  {
-    uint32_t unforcedDrop;      //!< Early probability drops: proactive
-    uint32_t forcedDrop;        //!< Drops due to queue limit: reactive
-  } Stats;
   
-  /**
-   * \brief Burst types
-   */
-  enum BurstStateT
-  {
-    NO_BURST,
-    IN_BURST,
-    IN_BURST_PROTECTING,
-  };
 
   /**
    * \brief Set the operating mode of this queue.
@@ -118,13 +101,6 @@ public:
   Time GetQueueDelay (void);
 
   /**
-   * \brief Get PIE statistics after running.
-   *
-   * \returns The drop statistics.
-   */
-  Stats GetStats ();
-
-  /**
    * Assign a fixed random variable stream number to the random variables
    * used by this model.  Return the number of streams (possibly zero) that
    * have been assigned.
@@ -146,10 +122,12 @@ protected:
   /**
    * \brief Initialize the queue parameters.
    */
-  virtual void InitializeParams (voi        
+  virtual void InitializeParams (void);
         
 	virtual bool DoEnqueue(Ptr<QueueDiscItem> item);
 	virtual Ptr<QueueDiscItem> DoDequeue(void);
+	virtual Ptr<const QueueDiscItem> DoPeek (void) const;
+	virtual bool CheckConfig (void);
 
 	virtual void IncrementPmark(int how);           // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
 	virtual void DecrementPmark(int how);           // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
@@ -162,45 +140,34 @@ protected:
    */
 	virtual bool DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize);
 
-	virtual void DoReset();
-
-	void plot();
-	void plot1(int qlen);
-	void pmark_plot(int method);
-
   
 private:
   
   Queue::QueueMode m_mode;                //!< Mode (bytes or packets)
   uint32_t m_queueLimit;                  //!< Queue limit in bytes / packets
-  Time m_qDelay;                          //!< Current value of queue delay
   
   
-  Ptr<UniformRandomVariable> m_uv         //!< Rng stream
+  Ptr<UniformRandomVariable> m_uv;        //!< Rng stream
 
 
-  int drop_front;                         // drop-from-front (rather than from tail)
-	int bytes;                              //??
-	int dummy;                              //??
-	int setbit;                             // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
-	int mean_pktsize;                       // Average Packet Size
-	double decrement;                       // marking probability decrement value
-	double increment;                       // marking probability increment value
-	Time iholdtime;                       // last time at which pmark incremented 
-	Time dholdtime;                       // last time at which pmark decremented
-	int dalgorithm;                         // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
-	int ialgorithm;                         // which increment algo to use (refer to ns-2 code) (default is additive increase)
-	double bandwidth;                       //
+  	int m_dropFront;                         // drop-from-front (rather than from tail)
+	int m_bytes;                              //??
+	int m_setBit;                             // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
+	int m_meanPktSize;                       // Average Packet Size
+	double m_decrement;                       // marking probability decrement value
+	double m_increment;                       // marking probability increment value
+	Time m_iHoldTime;                         // last time at which pmark incremented 
+	Time m_dHoldTime;                         // last time at which pmark decremented
+	int m_dAlgorithm;                         // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
+	int m_iAlgorithm;                         // which increment algo to use (refer to ns-2 code) (default is additive increase)
+	double m_bandwidth;                       // ??
 
-	int idle;                               //??
-	Time idletime;                        //??
-	double ptc;                             //??
-	Time ifreezetime;                     // Time interval during which pmark cannot be increased
-	Time dfreezetime;                     // Time interval during which pmark cannot be decreased
-	double pmark;                           // Marking Probability
-        
-  EventId event;                          // It is use to decide which event is triggered (Link is idle or queue bursting) 
-                
+	int m_idle;                               //??
+	Time m_idletime;                          //??
+	double m_ptc;                             //??
+	Time m_iFreezeTime;                       // Time interval during which pmark cannot be increased
+	Time m_dFreezeTime;                       // Time interval during which pmark cannot be decreased
+	double m_Pmark;                           // Marking Probability
 
 };
 
