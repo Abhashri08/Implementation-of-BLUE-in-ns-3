@@ -20,12 +20,6 @@
  *          Mohit P. Tahiliani <tahiliani@nitk.edu.in>
  */
 
-/*
-//TODO
- * PORT NOTE: This code was ported from ns-2.36rc1 (queue/??).
- * Most of the comments are also ported from the same.
- */
-
 #include "ns3/log.h"
 #include "ns3/enum.h"
 #include "ns3/uinteger.h"
@@ -172,7 +166,7 @@ BlueQueueDisc::GetQueueSize (void)
     }
 }
 
-  
+
 int64_t
 BlueQueueDisc::AssignStreams (int64_t stream)
 {
@@ -192,14 +186,14 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
       || (GetMode () == Queue::QUEUE_MODE_BYTES && nQueued + item->GetPacketSize () > m_queueLimit))
     {
       // Drops due to queue limit: reactive
-		IncrementPmark(0);
+      IncrementPmark (0);
       Drop (item);
       return false;
     }
   else if (DropEarly (item, nQueued))
     {
       // Early probability drop: proactive
-		
+
       Drop (item);
       return false;
     }
@@ -231,12 +225,12 @@ bool BlueQueueDisc::DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize)
 {
   NS_LOG_FUNCTION (this << item << qSize);
   //TODO Whether to consider queue overflow condition here
-	//TODO Whether to write code for ECN Support
-	double u =  m_uv->GetValue();
-	if (u <= m_Pmark) 
-	{
-		return true;
-	}
+  //TODO Whether to write code for ECN Support
+  double u =  m_uv->GetValue ();
+  if (u <= m_Pmark)
+    {
+      return true;
+    }
   return true;
 }
 
@@ -246,90 +240,100 @@ void BlueQueueDisc::IncrementPmark (int how)
   Time now = Simulator::Now ();
 
   if (now - m_iFreezeTime > m_iHoldTime) 
-  {
-    m_iFreezeTime = now;
-    switch (m_iAlgorithm) 
     {
-      case 0:
-        switch (how) 
+      m_iFreezeTime = now;
+      switch (m_iAlgorithm)
         {
-          case 0:
-            m_Pmark += m_increment;
-            break;
-			  
-          case 1:
-			    default:
-				    break;
-		    }
-		    break;
-      
-      case 2:
-        switch (how) {
-			    case 0:
-            m_Pmark = 2*m_Pmark + m_increment;
-				    break;         
-    			case 1:
-		    	default:
-				    break;
-		    }
+        case 0:
+          switch (how)
+            {
+            case 0:
+              m_Pmark += m_increment;
+              break;
+
+            case 1:
+            default:
+              break;
+            }
+          break;
+
+        case 2:
+          switch (how)
+            {
+            case 0:
+              m_Pmark = 2 * m_Pmark + m_increment;
+              break;
+            case 1:
+            default:
+              break;
+            }
         //TODO break missing
-    	default:
-    	case 1:
-    		switch (how) {
-		    	case 0:
-            m_Pmark += m_increment;
-    				break;
-          case 1:
-          default:
-            m_Pmark += m_increment/10;
-    				break;
-		    }
-      }
-      if (m_Pmark > 1.0) 
-        m_Pmark = 1.00;
+        default:
+        case 1:
+          switch (how)
+            {
+            case 0:
+              m_Pmark += m_increment;
+              break;
+            case 1:
+            default:
+              m_Pmark += m_increment / 10;
+              break;
+            }
+        }
+      if (m_Pmark > 1.0)
+        {
+          m_Pmark = 1.00;
+        }
     }
 }
 
 void BlueQueueDisc::DecrementPmark (int how)
 {
   NS_LOG_FUNCTION (this);
-  //TODO Check how to get current time 
+  //TODO Check how to get current time
   Time now = Simulator::Now ();
-	if (now - m_dFreezeTime > m_dHoldTime) {
-		m_dFreezeTime = now;
-	    	switch (m_dAlgorithm) {
-	    	  case 0:
-		      case 2:
-			      switch (how) {
-				      case 0:
-					m_Pmark -= m_decrement;
-					      break;
-				      case 1:
-				      default:
-					      break;
-			      } 
-			      break;
-	    	
-		default:
-	    	  case 1:
-			      switch (how) {
-				      case 0:
-				  m_Pmark -= m_decrement;
-					      break;
-				      case 1:
-				      default:
-					m_Pmark -= m_decrement/10;
-					      break;
-			      }
-	    	  }
-	    	  if (m_Pmark < 0)
-			      m_Pmark = 0.0;
-	      }
-    //TODO What is significance of below linw and how can we update it for blue
-    //m_rtrsEvent = Simulator::Schedule (m_tUpdate, &BlueQueueDisc::DecrementPmark, this);
+  if (now - m_dFreezeTime > m_dHoldTime)
+    {
+      m_dFreezeTime = now;
+      switch (m_dAlgorithm)
+        {
+        case 0:
+        case 2:
+          switch (how)
+            {
+            case 0:
+              m_Pmark -= m_decrement;
+              break;
+            case 1:
+            default:
+              break;
+            }
+          break;
+
+        default:
+        case 1:
+          switch (how)
+            {
+            case 0:
+              m_Pmark -= m_decrement;
+              break;
+            case 1:
+            default:
+              m_Pmark -= m_decrement / 10;
+              break;
+            }
+        }
+      if (m_Pmark < 0)
+        {
+          m_Pmark = 0.0;
+        }
+    }
+  //TODO What is significance of below linw and how can we update it for blue
+  //m_rtrsEvent = Simulator::Schedule (m_tUpdate, &BlueQueueDisc::DecrementPmark, this);
 }
-  
-  
+
+
 Ptr<QueueDiscItem>
 BlueQueueDisc::DoDequeue ()
 {
@@ -343,8 +347,8 @@ BlueQueueDisc::DoDequeue ()
 
   Ptr<QueueDiscItem> item = StaticCast<QueueDiscItem> (GetInternalQueue (0)->Dequeue ());
 	
-	//TODO When to call DecrementPmark
-	DecrementPmark(0);
+  //TODO When to call DecrementPmark
+  DecrementPmark (0);
 
   return item;
 }
