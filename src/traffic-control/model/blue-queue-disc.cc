@@ -193,26 +193,40 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
   else if (DropEarly (item, nQueued))
     {
       // Early probability drop: proactive
-
       Drop (item);
       return false;
     }
 
   // No drop
-  bool retval = GetInternalQueue (0)->Enqueue (item);
-
-  /** TODO
-        FP1: Query
-        When to call increment pmark
-  */
-
-  // If Queue::Enqueue fails, QueueDisc::Drop is called by the internal queue
-  // because QueueDisc::AddInternalQueue sets the drop callback
-
+  bool isEnqueued = GetInternalQueue (0)->Enqueue (item);
+  if (isEnqueued)
+    {
+      int bytes = GetInternalQueue (0)->GetNBytes ();
+      int packets = GetInternalQueue (0)->GetNPackets ();
+      int qMetric = 0;
+      int qLimit = 0;
+      switch ( m_bytes )
+        {
+          case 0:
+            qMetric = packets;
+            qLimit = m_queueLimit;
+            break;
+          default:
+          case 1:
+            qMetric = bytes;
+            qLimit = m_queueLimit * m_meanPktSize;
+            break;
+        }
+        int half = qLimit / 2;
+        // if ( qMetric > qLimit ) 
+        //    IncrementPmark (1);
+        // else 
+        //    DecrementPmark (1);
+    }
   NS_LOG_LOGIC ("\t bytesInQueue  " << GetInternalQueue (0)->GetNBytes ());
   NS_LOG_LOGIC ("\t packetsInQueue  " << GetInternalQueue (0)->GetNPackets ());
 
-  return retval;
+  return isEnqueued;
 }
 
 void
@@ -267,7 +281,7 @@ void BlueQueueDisc::IncrementPmark (int how)
             default:
               break;
             }
-        //TODO break missing
+          break;
         default:
         case 1:
           switch (how)
@@ -291,7 +305,6 @@ void BlueQueueDisc::IncrementPmark (int how)
 void BlueQueueDisc::DecrementPmark (int how)
 {
   NS_LOG_FUNCTION (this);
-  //TODO Check how to get current time
   Time now = Simulator::Now ();
   if (now - m_dFreezeTime > m_dHoldTime)
     {
@@ -329,8 +342,6 @@ void BlueQueueDisc::DecrementPmark (int how)
           m_Pmark = 0.0;
         }
     }
-  //TODO What is significance of below linw and how can we update it for blue
-  //m_rtrsEvent = Simulator::Schedule (m_tUpdate, &BlueQueueDisc::DecrementPmark, this);
 }
 
 
@@ -339,17 +350,17 @@ BlueQueueDisc::DoDequeue ()
 {
   NS_LOG_FUNCTION (this);
 
-  if (GetInternalQueue (0)->IsEmpty ())
+  if ( GetInternalQueue (0)->IsEmpty () )
     {
       NS_LOG_LOGIC ("Queue empty");
+      DecrementPmark (0);
+      m_idle = 1;
+      m_idletime = Simulator::Now ();
       return 0;
     }
 
   Ptr<QueueDiscItem> item = StaticCast<QueueDiscItem> (GetInternalQueue (0)->Dequeue ());
-	
-  //TODO When to call DecrementPmark
-  DecrementPmark (0);
-
+  m_idle = 0;
   return item;
 }
 	

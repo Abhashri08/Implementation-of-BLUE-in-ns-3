@@ -142,14 +142,14 @@ protected:
 
 private:
   Queue::QueueMode m_mode;                //!< Mode (bytes or packets)
-  uint32_t m_queueLimit;                  //!< Queue limit in bytes / packets
+  int m_queueLimit;                  //!< Queue limit in bytes / packets
 
 
   Ptr<UniformRandomVariable> m_uv;        //!< Rng stream
 
 
   int m_dropFront;                               // drop-from-front (rather than from tail)
-  int m_bytes;                                    //??
+  int m_bytes;                                    // bytes or packet as measuring unit
   int m_setBit;                                   // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
   int m_meanPktSize;                             // Average Packet Size
   double m_decrement;                             // marking probability decrement value
