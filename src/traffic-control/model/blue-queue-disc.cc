@@ -59,7 +59,7 @@ TypeId BlueQueueDisc::GetTypeId (void)
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("increment",
                    "Pmark increment value",
-                   DoubleValue (0.25),
+                   DoubleValue (0.0025),
                    MakeDoubleAccessor (&BlueQueueDisc::m_increment),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("decrement",
