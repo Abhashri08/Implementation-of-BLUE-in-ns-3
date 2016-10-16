@@ -142,7 +142,7 @@ protected:
 
 private:
   Queue::QueueMode m_mode;                //!< Mode (bytes or packets)
-  int m_queueLimit;                  //!< Queue limit in bytes / packets
+  unsigned int m_queueLimit;                  //!< Queue limit in bytes / packets
 
 
   Ptr<UniformRandomVariable> m_uv;        //!< Rng stream

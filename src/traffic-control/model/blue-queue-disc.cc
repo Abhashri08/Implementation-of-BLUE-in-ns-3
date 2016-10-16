@@ -57,47 +57,47 @@ TypeId BlueQueueDisc::GetTypeId (void)
                    UintegerValue (25),
                    MakeUintegerAccessor (&BlueQueueDisc::SetQueueLimit),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("increment",
+    .AddAttribute ("Increment",
                    "Pmark increment value",
                    DoubleValue (0.0025),
                    MakeDoubleAccessor (&BlueQueueDisc::m_increment),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("decrement",
+    .AddAttribute ("Decrement",
                    "Pmark decrement Value",
                    DoubleValue (0.00025),
                    MakeDoubleAccessor (&BlueQueueDisc::m_decrement),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("iholdtime",
+    .AddAttribute ("IHoldTime",
                    "Value of increment hold time",
                    TimeValue (Seconds (0.1)),
                    MakeTimeAccessor (&BlueQueueDisc::m_iHoldTime),
                    MakeTimeChecker ())
-    .AddAttribute ("dholdtime",
+    .AddAttribute ("DHoldTime",
                    "Value of decrement hold time",
                    TimeValue (Seconds (0.1)),
                    MakeTimeAccessor (&BlueQueueDisc::m_dHoldTime),
                    MakeTimeChecker ())
-    .AddAttribute ("ifreezetime",
+    .AddAttribute ("IFreezeTime",
                    "Value of ifreezetime",
                    TimeValue (Seconds (0.1)),
                    MakeTimeAccessor (&BlueQueueDisc::m_iFreezeTime),
                    MakeTimeChecker ())
-    .AddAttribute ("dfreezetime",
+    .AddAttribute ("DFreezeTime",
                    "Value of dfreezetime",
                    TimeValue (Seconds (0.1)),
                    MakeTimeAccessor (&BlueQueueDisc::m_dFreezeTime),
                    MakeTimeChecker ())
-    .AddAttribute ("dalgorithm",
+    .AddAttribute ("DAlgorithm",
                    "Decrement Algorithm to use",
                    UintegerValue (0),
                    MakeUintegerAccessor (&BlueQueueDisc::m_dAlgorithm),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("ialgorithm",
+    .AddAttribute ("IAlgorithm",
                    "Increment Algorithm to use",
                    UintegerValue (0),
                    MakeUintegerAccessor (&BlueQueueDisc::m_iAlgorithm),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("Pmark",
+    .AddAttribute ("PMark",
                    "Marking Probabilty",
                    DoubleValue (0),
                    MakeDoubleAccessor (&BlueQueueDisc::m_Pmark),
@@ -217,11 +217,17 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
             qLimit = m_queueLimit * m_meanPktSize;
             break;
         }
-        int half = qLimit / 2;
+        // int half = qLimit / 2;
         // if ( qMetric > qLimit ) 
         //    IncrementPmark (1);
         // else 
         //    DecrementPmark (1);
+        if ( qMetric > qLimit ) 
+          {
+            Ptr<QueueDiscItem> item = StaticCast<QueueDiscItem> (GetInternalQueue (0)->Dequeue ());
+            IncrementPmark (0);
+            return false;
+          }
     }
   NS_LOG_LOGIC ("\t bytesInQueue  " << GetInternalQueue (0)->GetNBytes ());
   NS_LOG_LOGIC ("\t packetsInQueue  " << GetInternalQueue (0)->GetNPackets ());
@@ -238,8 +244,6 @@ BlueQueueDisc::InitializeParams (void)
 bool BlueQueueDisc::DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize)
 {
   NS_LOG_FUNCTION (this << item << qSize);
-  //TODO Whether to consider queue overflow condition here
-  //TODO Whether to write code for ECN Support
   double u =  m_uv->GetValue ();
   if (u <= m_Pmark)
     {
