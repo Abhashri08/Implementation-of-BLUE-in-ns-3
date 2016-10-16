@@ -207,27 +207,27 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
       int qLimit = 0;
       switch ( m_bytes )
         {
-          case 0:
-            qMetric = packets;
-            qLimit = m_queueLimit;
-            break;
-          default:
-          case 1:
-            qMetric = bytes;
-            qLimit = m_queueLimit * m_meanPktSize;
-            break;
+        case 0:
+          qMetric = packets;
+          qLimit = m_queueLimit;
+          break;
+        default:
+        case 1:
+          qMetric = bytes;
+          qLimit = m_queueLimit * m_meanPktSize;
+          break;
         }
-        // int half = qLimit / 2;
-        // if ( qMetric > qLimit ) 
-        //    IncrementPmark (1);
-        // else 
-        //    DecrementPmark (1);
-        if ( qMetric > qLimit ) 
-          {
-            Ptr<QueueDiscItem> item = StaticCast<QueueDiscItem> (GetInternalQueue (0)->Dequeue ());
-            IncrementPmark (0);
-            return false;
-          }
+      // int half = qLimit / 2;
+      // if ( qMetric > qLimit )
+      //    IncrementPmark (1);
+      // else
+      //    DecrementPmark (1);
+      if ( qMetric > qLimit )
+        {
+          Ptr<QueueDiscItem> item = StaticCast<QueueDiscItem> (GetInternalQueue (0)->Dequeue ());
+          IncrementPmark (0);
+          return false;
+        }
     }
   NS_LOG_LOGIC ("\t bytesInQueue  " << GetInternalQueue (0)->GetNBytes ());
   NS_LOG_LOGIC ("\t packetsInQueue  " << GetInternalQueue (0)->GetNPackets ());
@@ -257,7 +257,7 @@ void BlueQueueDisc::IncrementPmark (int how)
   NS_LOG_FUNCTION (this);
   Time now = Simulator::Now ();
 
-  if (now - m_iFreezeTime > m_iHoldTime) 
+  if (now - m_iFreezeTime > m_iHoldTime)
     {
       m_iFreezeTime = now;
       switch (m_iAlgorithm)
@@ -367,7 +367,7 @@ BlueQueueDisc::DoDequeue ()
   m_idle = 0;
   return item;
 }
-	
+
 Ptr<const QueueDiscItem>
 BlueQueueDisc::DoPeek () const
 {
@@ -385,7 +385,7 @@ BlueQueueDisc::DoPeek () const
 
   return item;
 }
-	
+
 bool
 BlueQueueDisc::CheckConfig (void)
 {
