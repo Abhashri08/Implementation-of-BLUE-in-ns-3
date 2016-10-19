@@ -61,7 +61,7 @@ public:
   BlueQueueDisc ();
 
   /**
-   * \brief PieQueueDisc Destructor
+   * \brief BlueQueueDisc Destructor
    */
   virtual ~BlueQueueDisc ();
 
@@ -141,24 +141,24 @@ protected:
 
 
 private:
-  Queue::QueueMode m_mode;                //!< Mode (bytes or packets)
-  unsigned int m_queueLimit;                  //!< Queue limit in bytes / packets
+  Queue::QueueMode m_mode;                        //!< Mode (bytes or packets)
+  unsigned int m_queueLimit;                      //!< Queue limit in bytes / packets
 
 
-  Ptr<UniformRandomVariable> m_uv;        //!< Rng stream
+  Ptr<UniformRandomVariable> m_uv;                //!< Rng stream
 
 
   int m_dropFront;                               // drop-from-front (rather than from tail)
-  int m_bytes;                                    // bytes or packet as measuring unit
-  int m_setBit;                                   // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
+  int m_bytes;                                   // bytes or packet as measuring unit
+  int m_setBit;                                  // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
   int m_meanPktSize;                             // Average Packet Size
-  double m_decrement;                             // marking probability decrement value
-  double m_increment;                             // marking probability increment value
-  Time m_iHoldTime;                               // last time at which pmark incremented
-  Time m_dHoldTime;                               // last time at which pmark decremented
-  int m_dAlgorithm;                               // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
-  int m_iAlgorithm;                               // which increment algo to use (refer to ns-2 code) (default is additive increase)
-  double m_bandwidth;                             // ??
+  double m_decrement;                            // marking probability decrement value
+  double m_increment;                            // marking probability increment value
+  Time m_iHoldTime;                              // last time at which pmark incremented
+  Time m_dHoldTime;                              // last time at which pmark decremented
+  int m_dAlgorithm;                              // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
+  int m_iAlgorithm;                              // which increment algo to use (refer to ns-2 code) (default is additive increase)
+  double m_bandwidth;                            // ??
 
   int m_idle;                                     //??
   Time m_idletime;                                //??
