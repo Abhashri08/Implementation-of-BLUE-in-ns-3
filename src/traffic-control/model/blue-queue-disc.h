@@ -128,8 +128,8 @@ protected:
   virtual Ptr<const QueueDiscItem> DoPeek (void) const;
   virtual bool CheckConfig (void);
 
-  virtual void IncrementPmark (int how);                // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
-  virtual void DecrementPmark (int how);                // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
+  virtual void IncrementPmark (uint32_t how);                // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
+  virtual void DecrementPmark (uint32_t how);                // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
 
   /**
    * \brief Check if a packet needs to be dropped due to probability drop
@@ -142,22 +142,22 @@ protected:
 
 private:
   Queue::QueueMode m_mode;                        //!< Mode (bytes or packets)
-  unsigned int m_queueLimit;                      //!< Queue limit in bytes / packets
+  uint32_t m_queueLimit;                      //!< Queue limit in bytes / packets
 
 
   Ptr<UniformRandomVariable> m_uv;                //!< Rng stream
 
 
-  int m_dropFront;                               // drop-from-front (rather than from tail)
-  int m_bytes;                                   // bytes or packet as measuring unit
-  int m_setBit;                                  // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
-  int m_meanPktSize;                             // Average Packet Size
+  uint32_t m_dropFront;                               // drop-from-front (rather than from tail)
+  uint32_t m_bytes;                                   // bytes or packet as measuring unit
+  uint32_t m_setBit;                                  // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
+  uint32_t m_meanPktSize;                             // Average Packet Size
   double m_decrement;                            // marking probability decrement value
   double m_increment;                            // marking probability increment value
   Time m_iHoldTime;                              // last time at which pmark incremented
   Time m_dHoldTime;                              // last time at which pmark decremented
-  int m_dAlgorithm;                              // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
-  int m_iAlgorithm;                              // which increment algo to use (refer to ns-2 code) (default is additive increase)
+  uint32_t m_dAlgorithm;                              // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
+  uint32_t m_iAlgorithm;                              // which increment algo to use (refer to ns-2 code) (default is additive increase)
   double m_bandwidth;                            // ??
 
   int m_idle;                                     //??

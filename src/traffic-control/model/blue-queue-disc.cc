@@ -208,7 +208,7 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
       switch ( m_bytes )
         {
         case 0:
-          qMetric = packets;
+          qMetric = packets; 
           qLimit = m_queueLimit;
           break;
         default:
@@ -249,10 +249,10 @@ bool BlueQueueDisc::DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize)
     {
       return true;
     }
-  return true;
+  return false;
 }
 
-void BlueQueueDisc::IncrementPmark (int how)
+void BlueQueueDisc::IncrementPmark (uint32_t how)
 {
   NS_LOG_FUNCTION (this);
   Time now = Simulator::Now ();
@@ -306,7 +306,7 @@ void BlueQueueDisc::IncrementPmark (int how)
     }
 }
 
-void BlueQueueDisc::DecrementPmark (int how)
+void BlueQueueDisc::DecrementPmark (uint32_t how)
 {
   NS_LOG_FUNCTION (this);
   Time now = Simulator::Now ();
