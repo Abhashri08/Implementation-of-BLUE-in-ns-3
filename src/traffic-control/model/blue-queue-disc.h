@@ -141,31 +141,27 @@ protected:
 
 
 private:
-  Queue::QueueMode m_mode;                        //!< Mode (bytes or packets)
-  uint32_t m_queueLimit;                      //!< Queue limit in bytes / packets
+  Queue::QueueMode m_mode;                      //!< Mode (bytes or packets)
+  uint32_t m_queueLimit;                        //!< Queue limit in bytes / packets
 
 
-  Ptr<UniformRandomVariable> m_uv;                //!< Rng stream
+  Ptr<UniformRandomVariable> m_uv;              //!< Rng stream
 
 
-  uint32_t m_dropFront;                               // drop-from-front (rather than from tail)
-  uint32_t m_bytes;                                   // bytes or packet as measuring unit
-  uint32_t m_setBit;                                  // Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
-  uint32_t m_meanPktSize;                             // Average Packet Size
-  double m_decrement;                            // marking probability decrement value
-  double m_increment;                            // marking probability increment value
-  Time m_iHoldTime;                              // last time at which pmark incremented
-  Time m_dHoldTime;                              // last time at which pmark decremented
-  uint32_t m_dAlgorithm;                              // which decrement algo to use (refer to ns-2 code) (default is additive decrease)
-  uint32_t m_iAlgorithm;                              // which increment algo to use (refer to ns-2 code) (default is additive increase)
-  double m_bandwidth;                            // ??
+  uint32_t m_dropFront;                         //!< drop-from-front (rather than from tail)
+  uint32_t m_bytes;                             //!< bytes or packet as measuring unit
+  uint32_t m_setBit;                            //!< Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
+  uint32_t m_meanPktSize;                       //!< Average Packet Size
+  double m_decrement;                           //!< marking probability decrement value
+  double m_increment;                           //!< marking probability increment value
+  Time m_iHoldTime;                             //!< last time at which pmark incremented
+  Time m_dHoldTime;                             //!< last time at which pmark decremented
+  uint32_t m_dAlgorithm;                        //!< which decrement algo to use (refer to ns-2 code) (default is additive decrease)
+  uint32_t m_iAlgorithm;                        //!< which increment algo to use (refer to ns-2 code) (default is additive increase)
 
-  int m_idle;                                     //??
-  Time m_idletime;                                //??
-  double m_ptc;                                   //??
-  Time m_iFreezeTime;                             // Time interval during which pmark cannot be increased
-  Time m_dFreezeTime;                             // Time interval during which pmark cannot be decreased
-  double m_Pmark;                                 // Marking Probability
+  Time m_iFreezeTime;                           //!< Time interval during which pmark cannot be increased
+  Time m_dFreezeTime;                           //!< Time interval during which pmark cannot be decreased
+  double m_Pmark;                               //!< Marking Probability
 
 };
 

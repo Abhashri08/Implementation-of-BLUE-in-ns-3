@@ -358,13 +358,10 @@ BlueQueueDisc::DoDequeue ()
     {
       NS_LOG_LOGIC ("Queue empty");
       DecrementPmark (0);
-      m_idle = 1;
-      m_idletime = Simulator::Now ();
       return 0;
     }
 
   Ptr<QueueDiscItem> item = StaticCast<QueueDiscItem> (GetInternalQueue (0)->Dequeue ());
-  m_idle = 0;
   return item;
 }
 
