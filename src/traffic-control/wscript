@@ -24,6 +24,7 @@ def build(bld):
     module_test.source = [
       'test/red-queue-disc-test-suite.cc',
       'test/codel-queue-disc-test-suite.cc',
+      'test/blue-queue-disc-test-suite.cc',
         ]
 
     headers = bld(features='ns3header')

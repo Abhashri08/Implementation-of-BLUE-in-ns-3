@@ -119,6 +119,13 @@ BlueQueueDisc::~BlueQueueDisc ()
   NS_LOG_FUNCTION (this);
 }
 
+BlueQueueDisc::Stats
+BlueQueueDisc::GetStats ()
+{
+  NS_LOG_FUNCTION (this);
+  return m_stats;
+}
+
 void
 BlueQueueDisc::DoDispose (void)
 {

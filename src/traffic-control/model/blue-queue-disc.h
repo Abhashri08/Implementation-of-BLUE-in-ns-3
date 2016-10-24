@@ -65,7 +65,14 @@ public:
    */
   virtual ~BlueQueueDisc ();
 
-
+  /**
+   * \brief Stats
+   */
+  typedef struct
+  {
+    uint32_t unforcedDrop;      //!< Early probability drops: proactive
+    uint32_t forcedDrop;        //!< Drops due to queue limit: reactive
+  } Stats;
 
   /**
    * \brief Set the operating mode of this queue.
@@ -99,6 +106,13 @@ public:
    * \brief Get queue delay
    */
   Time GetQueueDelay (void);
+
+  /**
+   * \brief Get BLUE statistics after running.
+   *
+   * \returns The drop statistics.
+   */
+  Stats GetStats ();
 
   /**
    * Assign a fixed random variable stream number to the random variables
@@ -143,7 +157,7 @@ protected:
 private:
   Queue::QueueMode m_mode;                      //!< Mode (bytes or packets)
   uint32_t m_queueLimit;                        //!< Queue limit in bytes / packets
-
+  Stats m_stats;                                //!< BLUE statistics
 
   Ptr<UniformRandomVariable> m_uv;              //!< Rng stream
 
