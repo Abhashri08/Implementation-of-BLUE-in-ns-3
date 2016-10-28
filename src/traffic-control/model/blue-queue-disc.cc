@@ -194,12 +194,14 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
     {
       // Drops due to queue limit: reactive
       IncrementPmark (0);
+      m_stats.forcedDrop++;
       Drop (item);
       return false;
     }
   else if (DropEarly (item, nQueued))
     {
       // Early probability drop: proactive
+      m_stats.unforcedDrop++;
       Drop (item);
       return false;
     }
@@ -245,7 +247,14 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 void
 BlueQueueDisc::InitializeParams (void)
 {
-
+  // Initially queue is empty so variables are initialize to zero except m_dqCount
+  m_decrement = 0.00025;
+  m_increment = 0.025;
+  m_dFreezeTime = Time (Seconds(0.1));
+  m_iFreezeTime = Time (Seconds(0.1));
+  m_Pmark = 0;
+  m_stats.forcedDrop = 0;
+  m_stats.unforcedDrop = 0;
 }
 
 bool BlueQueueDisc::DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize)
