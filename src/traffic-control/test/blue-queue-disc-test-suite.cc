@@ -97,6 +97,10 @@ BlueQueueDiscTestCase::RunBlueTest (StringValue mode)
                          "Verify that we can actually set the attribute QueueLimit");
   NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("PMark", DoubleValue (Pmark)), true,
                          "Verify that we can actually set the attribute PMark");
+  NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("IHoldTime", TimeValue (Seconds (0.1))), true,
+                         "Verify that we can actually set the attribute IHoldTime");
+  NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("DHoldTime", TimeValue (Seconds (0.1))), true,
+                         "Verify that we can actually set the attribute DHoldTime");
 
   Address dest;
   
@@ -171,6 +175,10 @@ BlueQueueDiscTestCase::RunBlueTest (StringValue mode)
                          "Verify that we can actually set the attribute QueueLimit");
   NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("PMark", DoubleValue (Pmark)), true,
                          "Verify that we can actually set the attribute PMark");
+  NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("IHoldTime", TimeValue (Seconds (0.1))), true,
+                         "Verify that we can actually set the attribute IHoldTime");
+  NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("DHoldTime", TimeValue (Seconds (0.1))), true,
+                         "Verify that we can actually set the attribute DHoldTime");
 
   queue->Initialize ();
   Enqueue (queue, pktSize, 300);
@@ -191,6 +199,10 @@ BlueQueueDiscTestCase::RunBlueTest (StringValue mode)
                          "Verify that we can actually set the attribute QueueLimit");
   NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("PMark", DoubleValue (Pmark)), true,
                          "Verify that we can actually set the attribute PMark");
+  NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("IHoldTime", TimeValue (Seconds (0.1))), true,
+                         "Verify that we can actually set the attribute IHoldTime");
+  NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("DHoldTime", TimeValue (Seconds (0.1))), true,
+                         "Verify that we can actually set the attribute DHoldTime");
 
   queue->Initialize ();
   Enqueue (queue, pktSize, 300);
