@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright © 2011 Marcos Talau
+ * Copyright (c) 2016 NITK Surathkal
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -18,7 +18,6 @@
  * Authors: Vivek Jain <jain.vivek.anand@gmail.com>
  *          Sandeep Singh <hisandeepsingh@hotmail.com>
  *          Mohit P. Tahiliani <tahiliani@nitk.edu.in>
- *
  */
 
 #include "ns3/test.h"
@@ -172,20 +171,12 @@ BlueQueueDiscTestCase::RunBlueTest (StringValue mode)
                          "Verify that we can actually set the attribute QueueLimit");
   NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("PMark", DoubleValue (Pmark)), true,
                          "Verify that we can actually set the attribute PMark");
+
   queue->Initialize ();
   Enqueue (queue, pktSize, 300);
   BlueQueueDisc::Stats st = StaticCast<BlueQueueDisc> (queue)->GetStats ();
   NS_TEST_EXPECT_MSG_EQ (st.unforcedDrop, 0, "There should zero dropped packets due probability mark");
   NS_TEST_EXPECT_MSG_EQ (st.forcedDrop, 0, "There should zero dropped packets due hardmark mark");
-
-  // save number of drops from tests
-  struct d {
-    uint32_t test3;
-    uint32_t test4;
-    uint32_t test5;
-    uint32_t test6;
-    uint32_t test7;
-  } drop;
 
 
   // test 3: more data, now drops due QW change
@@ -200,11 +191,12 @@ BlueQueueDiscTestCase::RunBlueTest (StringValue mode)
                          "Verify that we can actually set the attribute QueueLimit");
   NS_TEST_EXPECT_MSG_EQ (queue->SetAttributeFailSafe ("PMark", DoubleValue (Pmark)), true,
                          "Verify that we can actually set the attribute PMark");
+
   queue->Initialize ();
   Enqueue (queue, pktSize, 300);
   st = StaticCast<BlueQueueDisc> (queue)->GetStats ();
-  drop.test3 = st.unforcedDrop + st.forcedDrop;
-  NS_TEST_EXPECT_MSG_NE (drop.test3, 0, "There should be some dropped packets");
+  uint32_t test3 = st.unforcedDrop + st.forcedDrop;
+  NS_TEST_EXPECT_MSG_NE (test3, 0, "There should be some dropped packets");
 
 }
 
