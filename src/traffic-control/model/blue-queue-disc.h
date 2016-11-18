@@ -20,12 +20,6 @@
  *          Mohit P. Tahiliani <tahiliani@nitk.edu.in>
  */
 
-/*
-//TODO
- * PORT NOTE: This code was ported from ns-2.36rc1 (queue/??).
- * Most of the comments are also ported from the same.
- */
-
 #ifndef BLUE_QUEUE_DISC_H
 #define BLUE_QUEUE_DISC_H
 
@@ -39,11 +33,8 @@
 #include "ns3/event-id.h"
 #include "ns3/random-variable-stream.h"
 
-#define BURST_RESET_TIMEOUT 1.5
-
 namespace ns3 {
 
-class TraceContainer;
 class UniformRandomVariable;
 
 class BlueQueueDisc : public QueueDisc
@@ -124,13 +115,11 @@ public:
    */
   int64_t AssignStreams (int64_t stream);
 
-
 protected:
   /**
    * \brief Dispose of the object
    */
   virtual void DoDispose (void);
-
 
   /**
    * \brief Initialize the queue parameters.
@@ -142,44 +131,40 @@ protected:
   virtual Ptr<const QueueDiscItem> DoPeek (void) const;
   virtual bool CheckConfig (void);
 
-  virtual void IncrementPmark (uint32_t how);                // how is used for specifing increment type  // I think it's not necessary to have 'how' as this is not specified in the paper
-  virtual void DecrementPmark (uint32_t how);                // how is used for specifing decrement type  // I think it's not necessary to have 'how' as this is not specified in the paper
+  /**
+   * \brief Increment the value of marking probability
+   */
+  virtual void IncrementPmark (void);
+
+  /**
+   * \brief Decrement the value of marking probability
+   */
+  virtual void DecrementPmark (void);
 
   /**
    * \brief Check if a packet needs to be dropped due to probability drop
-   * \param item queue item
-   * \param qSize queue size
    * \returns false for no drop, true for drop
    */
-  virtual bool DropEarly (Ptr<QueueDiscItem> item, uint32_t qSize);
-
+  virtual bool DropEarly (void);
 
 private:
   Queue::QueueMode m_mode;                      //!< Mode (bytes or packets)
   uint32_t m_queueLimit;                        //!< Queue limit in bytes / packets
   Stats m_stats;                                //!< BLUE statistics
-
   Ptr<UniformRandomVariable> m_uv;              //!< Rng stream
 
-
-  uint32_t m_dropFront;                         //!< drop-from-front (rather than from tail)
-  uint32_t m_bytes;                             //!< bytes or packet as measuring unit
-  uint32_t m_setBit;                            //!< Whether to Use ECN (Cannot use this because ns-3 doesn't have support for ECN)
-  uint32_t m_meanPktSize;                       //!< Average Packet Size
-  double m_decrement;                           //!< marking probability decrement value
-  double m_increment;                           //!< marking probability increment value
-  Time m_iHoldTime;                             //!< last time at which pmark incremented
-  Time m_dHoldTime;                             //!< last time at which pmark decremented
-  uint32_t m_dAlgorithm;                        //!< which decrement algo to use (refer to ns-2 code) (default is additive decrease)
-  uint32_t m_iAlgorithm;                        //!< which increment algo to use (refer to ns-2 code) (default is additive increase)
-
-  Time m_iFreezeTime;                           //!< Time interval during which pmark cannot be increased
-  Time m_dFreezeTime;                           //!< Time interval during which pmark cannot be decreased
+  // ** Variables supplied by user
   double m_Pmark;                               //!< Marking Probability
+  uint32_t m_meanPktSize;                       //!< Average Packet Size
+  double m_increment;                           //!< increment value for marking probability
+  double m_decrement;                           //!< decrement value for marking probability
+  Time m_freezeTime;                            //!< Time interval during which Pmark cannot be updated
 
+  // ** Variables maintained by BLUE
+  Time m_lastUpdateTime;                        //!< last time at which Pmark was updated
+  Time m_idleStartTime;                         //!< Time when BLUE Queue Disc entered the idle period
 };
 
-}    // namespace ns3
+} // namespace ns3
 
-#endif
-
+#endif // BLUE_QUEUE_DISC_H
