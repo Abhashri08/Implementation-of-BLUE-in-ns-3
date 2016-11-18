@@ -177,7 +177,7 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
           m--;
         }
       
-      m_idleStartTime = Time::Min (); // not idle anymore
+      m_idleStartTime = Time (Seconds (0.0)); // not idle anymore
     }
 
   if ((GetMode () == Queue::QUEUE_MODE_PACKETS && nQueued >= m_queueLimit)
@@ -219,8 +219,8 @@ BlueQueueDisc::InitializeParams (void)
   m_decrement = 0.00025;
   m_Pmark = 0;
   m_freezeTime = Time (Seconds (0.1));
-  m_lastUpdateTime = Time::Min ();
-  m_idleStartTime = Time::Min ();
+  m_lastUpdateTime = Time (Seconds (0.0));
+  m_idleStartTime = Time (Seconds (0.0));
   m_stats.forcedDrop = 0;
   m_stats.unforcedDrop = 0;
 }
@@ -278,7 +278,7 @@ BlueQueueDisc::DoDequeue (void)
   NS_LOG_LOGIC ("Number packets " << GetInternalQueue (0)->GetNPackets ());
   NS_LOG_LOGIC ("Number bytes " << GetInternalQueue (0)->GetNBytes ());
 
-  if (GetInternalQueue (0)->IsEmpty () && m_idleStartTime == Time::Min ())
+  if (GetInternalQueue (0)->IsEmpty () && m_idleStartTime == Time (Seconds (0.0)))
     {
       NS_LOG_LOGIC ("Queue empty");
       
@@ -286,7 +286,6 @@ BlueQueueDisc::DoDequeue (void)
       
       // Decrement the Pmark
       DecrementPmark ();
-      return 0;
     }
 
   return item;
