@@ -215,10 +215,6 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 void
 BlueQueueDisc::InitializeParams (void)
 {
-  m_increment = 0.025;
-  m_decrement = 0.00025;
-  m_Pmark = 0;
-  m_freezeTime = Time (Seconds (0.1));
   m_lastUpdateTime = Time (Seconds (0.0));
   m_idleStartTime = Time (Seconds (0.0));
   m_stats.forcedDrop = 0;
