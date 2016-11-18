@@ -1,4 +1,4 @@
-# ns3-aqm-blue
+# Implementation of BLUE algorithm in ns-3
 
 Course Code: CS822
 
@@ -7,6 +7,16 @@ Assignment: #FP1
 Overview:
 
 Blue is an Active Queue Management (AQM) [1] mechanism like Random Early Detection (RED) [2], and has been implemented in ns-2 [3]. This repository contains an implementation of BLUE in ns-3 [4].
+
+BLUE Example:
+
+An example program for BLUE has been provided in
+
+`src/traffic-control/examples/pfifo-vs-blue.cc`
+
+and should be executed as
+
+`./waf --run "red-vs-nlred --queueDiscType=BLUE"`
 
 References:
 
