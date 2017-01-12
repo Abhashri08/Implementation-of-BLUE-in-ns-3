@@ -29,7 +29,7 @@ based on ns-1.1 code implemented by Wu-chang Feng.
 
   * ``BlueQueueDisc::DecrementPmark ()``: This routine is called when link is idle for certain time and decrements the drop probability.
 
-  * ``BlueQueueDisc::DoDequeue ()``: This routine calculates the average departure rate which is required for updating the drop probability in ``BlueQueueDisc::CalculateP ()``  
+  * ``BlueQueueDisc::DoDequeue ()``: This routine dequeues the packet from queue and if queue is idle, this initializes idleStartTime.  
 
 References
 ==========
@@ -46,33 +46,26 @@ The key attributes that the BlueQueue class holds include the following:
 * ``Mode:`` BLUE operating mode (BYTES or PACKETS). The default mode is PACKETS. 
 * ``QueueLimit:`` The maximum number of bytes or packets the queue can hold. The default value is 25 bytes / packets.
 * ``MeanPktSize:`` Mean packet size in bytes. The default value is 1000 bytes.
-* ``Increment:`` Amount of value used to increase drop probability. The default value is 0.0025.
-* ``Decrement:`` Amount of value used to decrease drop probability. The default value is 0.00025.
-* ``IHoldTime:`` Minimum Time to wait before incrementing drop probability. The default value is 100 ms. 
-* ``DHoldTime:`` Minimum Time to wait before decrementing drop probability. The default value is 100 ms. 
-* ``IFreezeTime:`` Last time at which drop probability is incremented.
-* ``DFreezeTime:`` Last time at which drop probability is decremented.
-* ``DAlgorithm:`` Denotes which algorithm to use for decrementing drop probability.
-* ``IAlgorithm:`` Denotes which algorithm to use for incrementing drop probability.
+* ``Increment:`` Decrement value for marking probability. The default value is 0.0025.
+* ``Decrement:`` Increment value for marking probability. The default value is 0.00025.
+* ``FreezeTime:`` Time interval during which Pmark cannot be updated. The default value is 100 ms. 
+* ``LastUpdateTime:`` Last time at which drop probability is changed.
 * ``PMark:`` Value of drop probability.
 
 Examples
 ========
 
-The example for BLUE is `blue-example.cc` located in ``src/traffic-control/examples``.  To run the file (the first invocation below shows the available
-command-line options):
+The example for BLUE are `pfifo-vs-blue.cc` and `red-vs-blue.cc` located in ``src/traffic-control/examples``.  To run the file (the first invocation below shows the available command-line options):
 
 :: 
 
-   $ ./waf --run "blue-example --PrintHelp"
-   $ ./waf --run "blue-example --writePcap=1" 
-
-The expected output from the previous commands are 10 .pcap files.
+   $ ./waf --run "pfifo-vs-blue --queueDiscType=BLUE"
+   $ ./waf --run "red-vs-blue --queueDiscType=BLUE"
 
 Validation
 **********
 
-The BLUE model is tested using :cpp:class:`BlueQueueDiscTestSuite` class defined in `src/traffic-control/test/Blue-queue-test-suite.cc`. The suite includes 2 test cases:
+The BLUE model is tested using :cpp:class:`BlueQueueDiscTestSuite` class defined in `src/traffic-control/test/blue-queue-disc-test-suite.cc`. The suite includes 2 test cases:
 
 * Test 1: The first test checks the enqueue/dequeue with no drops and makes sure that BLUE attributes can be set correctly.
 * Test 2: The second test checks the enqueue/dequeue with drops according to BLUE algorithm

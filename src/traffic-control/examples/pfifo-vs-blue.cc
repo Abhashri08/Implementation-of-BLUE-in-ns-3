@@ -82,7 +82,7 @@ int main (int argc, char *argv[])
     Config::SetDefault ("ns3::BlueQueueDisc::QueueLimit", UintegerValue (queueDiscLimitPackets * pktSize));
   }
 
-  Config::SetDefault ("ns3::BlueQueueDisc::PMark", DoubleValue (0.2));
+  Config::SetDefault ("ns3::BlueQueueDisc::PMark", DoubleValue (0.0));
   Config::SetDefault ("ns3::BlueQueueDisc::Increment", DoubleValue (0.0025));
   Config::SetDefault ("ns3::BlueQueueDisc::Decrement", DoubleValue (0.00025));
   Config::SetDefault ("ns3::BlueQueueDisc::MeanPktSize", UintegerValue (pktSize));
@@ -133,8 +133,8 @@ int main (int argc, char *argv[])
 
   // Install on/off app on all right side nodes
   OnOffHelper clientHelper ("ns3::TcpSocketFactory", Address ());
-  clientHelper.SetAttribute ("OnTime", StringValue ("ns3::UniformRandomVariable[Min=0.,Max=1.]"));
-  clientHelper.SetAttribute ("OffTime", StringValue ("ns3::UniformRandomVariable[Min=0.,Max=1.]"));
+  clientHelper.SetAttribute ("OnTime", StringValue ("ns3::UniformRandomVariable[Min=0.|Max=1.]"));
+  clientHelper.SetAttribute ("OffTime", StringValue ("ns3::UniformRandomVariable[Min=0.|Max=1.]"));
   Address sinkLocalAddress (InetSocketAddress (Ipv4Address::GetAny (), port));
   PacketSinkHelper packetSinkHelper ("ns3::TcpSocketFactory", sinkLocalAddress);
   ApplicationContainer sinkApps; 

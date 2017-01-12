@@ -9,6 +9,9 @@ def build(bld):
     obj = bld.create_ns3_program('red-vs-ared', ['point-to-point', 'point-to-point-layout', 'internet', 'applications', 'traffic-control'])
     obj.source = 'red-vs-ared.cc'
 
+    obj = bld.create_ns3_program('red-vs-blue', ['point-to-point', 'point-to-point-layout', 'internet', 'applications', 'traffic-control'])
+    obj.source = 'red-vs-blue.cc'
+
     obj = bld.create_ns3_program('adaptive-red-tests', ['point-to-point', 'internet', 'applications', 'flow-monitor', 'traffic-control'])
     obj.source = 'adaptive-red-tests.cc'
 
