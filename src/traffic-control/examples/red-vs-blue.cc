@@ -58,8 +58,6 @@ int main (int argc, char *argv[])
   cmd.AddValue ("appDataRate", "Set OnOff App DataRate", appDataRate);
   cmd.AddValue ("modeBytes", "Set Queue disc mode to Packets <false> or bytes <true>", modeBytes);
 
-  cmd.AddValue ("redMinTh", "RED queue minimum threshold", minTh);
-  cmd.AddValue ("redMaxTh", "RED queue maximum threshold", maxTh);
   cmd.Parse (argc,argv);
 
   if ((queueDiscType != "RED") && (queueDiscType != "BLUE"))
