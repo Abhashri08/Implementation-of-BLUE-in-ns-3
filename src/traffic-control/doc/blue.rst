@@ -21,15 +21,15 @@ based on ns-1.1 code implemented by Wu-chang Feng.
 
 * class :cpp:class:`BlueQueueDisc`: This class implements the main Blue algorithm:
 
-  * ``BlueQueueDisc::DoEnqueue ()``: This routine checks whether the queue is full, and if so, drops the packets and records the number of drops due to queue overflow and calls routine ``BlueQueueDisc::IncrementPmark()``. If queue is not full, this routine calls ``BlueQueueDisc::DropEarly()``, and depending on the value returned, the incoming packet is either enqueued or dropped.
+  * ``BlueQueueDisc::DoEnqueue ()``: This method checks whether the queue is full, and if so, drops the packets and records the number of drops due to queue overflow and calls method ``BlueQueueDisc::IncrementPmark()``. If queue is not full, this method calls ``BlueQueueDisc::DropEarly()``, and depending on the value returned, the incoming packet is either enqueued or dropped.
 
-  * ``BlueQueueDisc::DropEarly ()``: The decision to enqueue or drop the packet is taken by invoking this routine, which returns a boolean value; false indicates enqueue and true indicates drop.
+  * ``BlueQueueDisc::DropEarly ()``: The decision to enqueue or drop the packet is taken by invoking this method, which returns a boolean value; false indicates enqueue and true indicates drop.
 
-  * ``BlueQueueDisc::IncrementPmark ()``: This routine is called when there is heavy congestion in queue and increases the drop probability.
+  * ``BlueQueueDisc::IncrementPmark ()``: This method is called when there is heavy congestion in queue and increases the drop probability.
 
-  * ``BlueQueueDisc::DecrementPmark ()``: This routine is called when link is idle for certain time and decrements the drop probability.
+  * ``BlueQueueDisc::DecrementPmark ()``: This method is called when link is idle for certain time and decrements the drop probability.
 
-  * ``BlueQueueDisc::DoDequeue ()``: This routine dequeues the packet from queue and if queue is idle, this initializes idleStartTime.  
+  * ``BlueQueueDisc::DoDequeue ()``: This method dequeues the packet from queue and if queue is idle, this initializes idleStartTime.  
 
 References
 ==========
