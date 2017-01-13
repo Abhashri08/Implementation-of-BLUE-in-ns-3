@@ -181,14 +181,14 @@ int main (int argc, char *argv[])
   std::cout << "Running the simulation" << std::endl;
   Simulator::Run ();
 
-
+  std::cout << "*** Stats from the bottleneck queue disc ***" << std::endl;
 
   if (queueDiscType == "RED")
     {
       RedQueueDisc::Stats st = StaticCast<RedQueueDisc> (queueDiscs.Get (0))->GetStats ();
-      if (st.unforcedDrop > st.forcedDrop)
+      if (st.unforcedDrop == 0)
         {
-          std::cout << "Drops due to prob mark should be less than the drops due to hard mark" << std::endl;
+          std::cout << "There should be some unforced drops" << std::endl;
           exit (1);
         }
 
@@ -197,22 +197,23 @@ int main (int argc, char *argv[])
           std::cout << "There should be zero drops due to queue full" << std::endl;
           exit (1);
         }
-      std::cout << "*** Stats from the bottleneck queue disc ***" << std::endl;
       std::cout << "\t " << st.unforcedDrop << " drops due to prob mark" << std::endl;
       std::cout << "\t " << st.forcedDrop << " drops due to hard mark" << std::endl;
       std::cout << "\t " << st.qLimDrop << " drops due to queue full" << std::endl;
-      std::cout << "Destroying the simulation" << std::endl;
     }
   else
     {
       BlueQueueDisc::Stats st = StaticCast<BlueQueueDisc> (queueDiscs.Get (0))->GetStats ();
-      std::cout << "*** Stats from the bottleneck queue disc ***" << std::endl;
+      if (st.unforcedDrop == 0 || st.forcedDrop == 0)
+        {
+          std::cout << "There should be some unforced and forced drops" << std::endl;
+          exit (1);
+        }
       std::cout << "\t " << st.unforcedDrop << " drops due to prob mark" << std::endl;
       std::cout << "\t " << st.forcedDrop << " drops due to queue limit" << std::endl;
-      std::cout << "Destroying the simulation" << std::endl;
     }
 
-
+  std::cout << "Destroying the simulation" << std::endl;
   Simulator::Destroy ();
   return 0;
 }
