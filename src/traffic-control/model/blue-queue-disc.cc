@@ -163,21 +163,9 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 
   uint32_t nQueued = GetQueueSize ();
 
-  if (nQueued == 0)
+  if (m_isIdle)
     {
-      NS_LOG_DEBUG ("BLUE Queue Disc is idle.");
-      Time now = Simulator::Now ();
-      int m = 0; // stores the number of times Pmark should be decremented
-      
-      m = ((now - m_idleStartTime) / m_freezeTime);
-      while (m != 0)
-        {
-          // Decrement the Pmark m times
-          DecrementPmark ();
-          m--;
-        }
-      
-      m_idleStartTime = Time (Seconds (0.0)); // not idle anymore
+      DecrementPmark ();
     }
 
   if ((GetMode () == Queue::QUEUE_MODE_PACKETS && nQueued >= m_queueLimit)
@@ -205,7 +193,11 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 
   // No drop
   bool isEnqueued = GetInternalQueue (0)->Enqueue (item);
-
+  if (isEnqueued)
+    {
+      NS_LOG_LOGIC ("\t Enqueue :: " << GetInternalQueue (0)->GetNPackets ());
+      m_isIdle = false; // not idle anymore
+    }
   NS_LOG_LOGIC ("\t bytesInQueue  " << GetInternalQueue (0)->GetNBytes ());
   NS_LOG_LOGIC ("\t packetsInQueue  " << GetInternalQueue (0)->GetNPackets ());
 
@@ -219,6 +211,7 @@ BlueQueueDisc::InitializeParams (void)
   m_idleStartTime = Time (Seconds (0.0));
   m_stats.forcedDrop = 0;
   m_stats.unforcedDrop = 0;
+  m_isIdle = true;
 }
 
 bool BlueQueueDisc::DropEarly (void)
@@ -274,13 +267,13 @@ BlueQueueDisc::DoDequeue (void)
   NS_LOG_LOGIC ("Number packets " << GetInternalQueue (0)->GetNPackets ());
   NS_LOG_LOGIC ("Number bytes " << GetInternalQueue (0)->GetNBytes ());
 
-  if (GetInternalQueue (0)->IsEmpty () && m_idleStartTime == Time (Seconds (0.0)))
+  if (GetInternalQueue (0)->IsEmpty () && !m_isIdle)
     {
       NS_LOG_LOGIC ("Queue empty");
-      
+
       m_idleStartTime = Simulator::Now ();
-      
       // Decrement the Pmark
+      m_isIdle = true;
       DecrementPmark ();
     }
 
@@ -359,3 +352,4 @@ BlueQueueDisc::CheckConfig (void)
 }
 
 } //namespace ns3
+
