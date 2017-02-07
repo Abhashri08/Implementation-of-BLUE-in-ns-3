@@ -166,6 +166,7 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
   if (m_isIdle)
     {
       DecrementPmark ();
+      m_isIdle = false; // not idle anymore
     }
 
   if ((GetMode () == Queue::QUEUE_MODE_PACKETS && nQueued >= m_queueLimit)
@@ -193,11 +194,7 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 
   // No drop
   bool isEnqueued = GetInternalQueue (0)->Enqueue (item);
-  if (isEnqueued)
-    {
-      NS_LOG_LOGIC ("\t Enqueue :: " << GetInternalQueue (0)->GetNPackets ());
-      m_isIdle = false; // not idle anymore
-    }
+
   NS_LOG_LOGIC ("\t bytesInQueue  " << GetInternalQueue (0)->GetNBytes ());
   NS_LOG_LOGIC ("\t packetsInQueue  " << GetInternalQueue (0)->GetNPackets ());
 
@@ -244,7 +241,18 @@ void BlueQueueDisc::DecrementPmark (void)
 {
   NS_LOG_FUNCTION (this);
   Time now = Simulator::Now ();
-  if (now - m_lastUpdateTime > m_freezeTime)
+  if (m_isIdle)
+    {
+      uint32_t m = 0; // stores the number of times Pmark should be decremented
+      m = ((now - m_idleStartTime) / m_freezeTime);
+      m_Pmark -= (m_decrement * m);
+      m_lastUpdateTime = now;
+      if (m_Pmark < 0.0)
+        {
+          m_Pmark = 0.0;
+        }
+    }
+  else if (now - m_lastUpdateTime > m_freezeTime)
     {
       m_Pmark -= m_decrement;
       m_lastUpdateTime = now;
