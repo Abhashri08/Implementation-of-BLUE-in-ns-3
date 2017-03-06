@@ -279,10 +279,10 @@ BlueQueueDisc::DoDequeue (void)
     {
       NS_LOG_LOGIC ("Queue empty");
 
-      m_idleStartTime = Simulator::Now ();
-      // Decrement the Pmark
-      m_isIdle = true;
       DecrementPmark ();
+      
+      m_idleStartTime = Simulator::Now ();
+      m_isIdle = true;
     }
 
   return item;
