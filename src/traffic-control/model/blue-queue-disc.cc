@@ -183,9 +183,6 @@ BlueQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
     }
   else if (DropEarly ())
     {
-      // Increment the Pmark
-      IncrementPmark ();
-
       // Early probability drop: proactive
       m_stats.unforcedDrop++;
       Drop (item);
